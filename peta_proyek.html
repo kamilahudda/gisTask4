@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tugas SIG: Peta Proyek Leaflet</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+    <style>
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        var pointData = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "nama": "Universitas Nusa Putra",
+                        "deskripsi": "Lokasi Kampus Anda di Sukabumi"
+                    },
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [106.8710, -6.9054] // [Bujur, Lintang] - WGS84 (EPSG:4326)
+                    }
+                }
+            ]
+        };
+
+        var lineData = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "nama": "Jalur Alternatif",
+                        "panjang_km": 5.2
+                    },
+                    "geometry": {
+                        "type": "LineString",
+                        "coordinates": [
+                            [106.8650, -6.9080],
+                            [106.8700, -6.9050],
+                            [106.8750, -6.9030]
+                        ]
+                    }
+                }
+            ]
+        };
+
+        var polygonData = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "nama": "Area Batas Kelurahan A",
+                        "luas_ha": 150,
+                        "keterangan": "Contoh Batas Administrasi"
+                    },
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [[
+                            [106.8700, -6.9020],
+                            [106.8750, -6.9020],
+                            [106.8750, -6.9060],
+                            [106.8700, -6.9060],
+                            [106.8700, -6.9020]
+                        ]]
+                    }
+                }
+            ]
+        };
+
+        var map = L.map('map').setView([-6.9054, 106.8710], 15);
+
+        var osmBase = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        });
+
+        var satelliteBase = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+            maxZoom: 18 // Batasi zoom agar tidak terlalu jauh
+        });
+
+        osmBase.addTo(map);
+
+        var markerLayer = L.geoJSON(pointData, {
+            pointToLayer: function (feature, latlng) {
+                return L.marker(latlng).bindPopup("<b>" + feature.properties.nama + "</b><br>" + feature.properties.deskripsi);
+            }
+        });
+
+        var polylineLayer = L.geoJSON(lineData, {
+            style: {
+                color: 'red', 
+                weight: 4,
+                opacity: 0.7   
+            },
+            onEachFeature: function (feature, layer) {
+                layer.bindPopup("<b>" + feature.properties.nama + "</b><br>Panjang: " + feature.properties.panjang_km + " km");
+            }
+        });
+
+        var polygonLayer = L.geoJSON(polygonData, {
+            style: {
+                fillColor: '#0070c0', 
+                weight: 2,           
+                opacity: 0.8,
+                color: 'blue',
+                fillOpacity: 0.3     
+            },
+            onEachFeature: function (feature, layer) {
+                layer.bindPopup("<b>" + feature.properties.nama + "</b><br>Keterangan: " + feature.properties.keterangan);
+            }
+        });
+
+        markerLayer.addTo(map);
+        polylineLayer.addTo(map);
+        polygonLayer.addTo(map);
+
+      
+        var baseMaps = {
+            "OSM Standar": osmBase,
+            "Citra Satelit (Esri)": satelliteBase
+        };
+
+        var overlayMaps = {
+            "Penting (Marker)": markerLayer,
+            "Jaringan Jalan (Polyline)": polylineLayer,
+            "Batas Administrasi (Polygon)": polygonLayer
+        };
+
+        L.control.layers(baseMaps, overlayMaps).addTo(map);
+
+    </script>
+
+</body>
+</html>
